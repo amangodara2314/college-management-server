@@ -1,0 +1,337 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider = "postgresql"
+}
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+//////////////////////////////////////////////////////
+// ENUMS
+//////////////////////////////////////////////////////
+
+enum EnrollmentStatus {
+  ACTIVE
+  PROMOTED
+  REPEAT
+  FAILED
+  COMPLETED
+  DROPPED
+}
+
+enum PaymentMethod {
+  CASH
+  ONLINE
+  UPI
+  CARD
+  BANK_TRANSFER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+
+enum Category {
+  GENERAL
+  OBC
+  SC
+  ST
+}
+
+enum Religion {
+  HINDU
+  SIKH
+  MUSLIM
+  CHRISTIAN
+  BUDDHIST
+  JAIN
+}
+
+//////////////////////////////////////////////////////
+// ADMIN
+//////////////////////////////////////////////////////
+
+model Admin {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+//////////////////////////////////////////////////////
+// SESSIONS
+//////////////////////////////////////////////////////
+
+model Session {
+  id         String   @id @default(uuid())
+  name       String   @unique
+  startDate  DateTime
+  endDate    DateTime
+  createdAt  DateTime @default(now())
+
+  admissions     Admission[]
+  enrollments    Enrollment[]
+  feeStructures  FeeStructure[]
+  exams          Exam[]
+}
+
+//////////////////////////////////////////////////////
+// COURSES
+//////////////////////////////////////////////////////
+
+model Course {
+  id             String   @id @default(uuid())
+  name           String
+  durationYears  Int
+  totalSemesters Int
+  code           String   @unique
+  createdAt      DateTime @default(now())
+
+  admissions    Admission[]
+  feeStructures FeeStructure[]
+}
+
+//////////////////////////////////////////////////////
+// SUBJECTS
+//////////////////////////////////////////////////////
+
+model Subject {
+  id        String  @id @default(uuid())
+  name      String
+  code      String? @unique
+
+  studentSubjects StudentSubject[]
+  marks           Mark[]
+}
+
+//////////////////////////////////////////////////////
+// STUDENTS
+//////////////////////////////////////////////////////
+
+model Student {
+  id         String   @id @default(uuid())
+  firstName  String
+  lastName   String?
+  fatherName String?
+  dob        DateTime?
+  mobile     String?
+  email      String?
+  address    String?
+  aadhar     String?
+  janAadhar  String?
+  ssoId      String?
+  ssoIdPassword  String?
+  otr        String?
+  gender     Gender
+  category   Category
+  subCategory String?
+  religion  Religion
+
+  createdAt  DateTime @default(now())
+
+  admissions  Admission[]
+  documents   StudentDocument[]
+  marks       Mark[]
+  notes       Note[]
+}
+
+
+//////////////////////////////////////////////////////
+// NOTES
+//////////////////////////////////////////////////////
+
+model Note {
+  id         String   @id @default(uuid())
+  description String
+  studentId   String
+  
+  createdAt  DateTime @default(now())
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+//////////////////////////////////////////////////////
+// ADMISSIONS
+//////////////////////////////////////////////////////
+
+model Admission {
+  id                 String   @id @default(uuid())
+  studentId          String
+  courseId           String
+  admissionSessionId String
+  enrollmentNo       String   @unique
+  admissionDate      DateTime?
+  status             String   @default("ACTIVE")
+  createdAt          DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course  Course  @relation(fields: [courseId], references: [id])
+  session Session @relation(fields: [admissionSessionId], references: [id])
+
+  studentSubjects StudentSubject[]
+  enrollments     Enrollment[]
+
+  @@index([studentId])
+}
+
+//////////////////////////////////////////////////////
+// STUDENT SUBJECTS
+//////////////////////////////////////////////////////
+
+model StudentSubject {
+  id          String @id @default(uuid())
+  admissionId String
+  subjectId   String
+
+  admission Admission @relation(fields: [admissionId], references: [id], onDelete: Cascade)
+  subject   Subject   @relation(fields: [subjectId], references: [id])
+
+  @@unique([admissionId, subjectId])
+}
+
+//////////////////////////////////////////////////////
+// ENROLLMENTS
+//////////////////////////////////////////////////////
+
+model Enrollment {
+  id          String           @id @default(uuid())
+  admissionId String
+  sessionId   String
+  year        Int
+  status      EnrollmentStatus @default(ACTIVE)
+
+  admission Admission @relation(fields: [admissionId], references: [id], onDelete: Cascade)
+  session   Session   @relation(fields: [sessionId], references: [id])
+
+  feePayments FeePayment[]
+
+  @@unique([admissionId, sessionId])
+}
+
+//////////////////////////////////////////////////////
+// FEE COMPONENTS
+//////////////////////////////////////////////////////
+
+model FeeComponent {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String?
+
+  feeStructures FeeStructure[]
+  feePayments   FeePayment[]
+}
+
+//////////////////////////////////////////////////////
+// FEE STRUCTURE
+//////////////////////////////////////////////////////
+
+model FeeStructure {
+  id             String @id @default(uuid())
+  courseId       String
+  sessionId      String
+  year           Int
+  feeComponentId String
+  amount         Float
+
+  course       Course       @relation(fields: [courseId], references: [id])
+  session      Session      @relation(fields: [sessionId], references: [id])
+  feeComponent FeeComponent @relation(fields: [feeComponentId], references: [id])
+
+  @@index([courseId])
+}
+
+//////////////////////////////////////////////////////
+// FEE PAYMENTS
+//////////////////////////////////////////////////////
+
+model FeePayment {
+  id             String        @id @default(uuid())
+  enrollmentId   String
+  feeComponentId String
+  amount         Float
+  paymentDate    DateTime
+  paymentMethod  PaymentMethod
+  receiptNo      String?
+  remarks        String?
+
+  enrollment   Enrollment   @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  feeComponent FeeComponent @relation(fields: [feeComponentId], references: [id])
+}
+
+//////////////////////////////////////////////////////
+// DOCUMENT TYPES
+//////////////////////////////////////////////////////
+
+model DocumentType {
+  id   String @id @default(uuid())
+  name String @unique
+
+  documents StudentDocument[]
+}
+
+//////////////////////////////////////////////////////
+// STUDENT DOCUMENTS
+//////////////////////////////////////////////////////
+
+model StudentDocument {
+  id             String   @id @default(uuid())
+
+  studentId      String
+  documentTypeId String
+
+  fileUrl        String
+  publicId       String
+  resourceType   String
+  format         String
+  fileName       String
+  fileSize       Int
+
+  uploadedAt     DateTime @default(now())
+
+  student        Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  documentType   DocumentType @relation(fields: [documentTypeId], references: [id])
+
+  @@unique([studentId, documentTypeId])
+}
+//////////////////////////////////////////////////////
+// EXAMS
+//////////////////////////////////////////////////////
+
+model Exam {
+  id        String   @id @default(uuid())
+  sessionId String
+  semester  Int
+  name      String
+
+  session Session @relation(fields: [sessionId], references: [id])
+  marks   Mark[]
+}
+
+//////////////////////////////////////////////////////
+// MARKS (WITH ATTEMPTS)
+//////////////////////////////////////////////////////
+
+model Mark {
+  id        String @id @default(uuid())
+  examId    String
+  studentId String
+  subjectId String
+  attempt   Int
+  marks     Float
+  result    String?
+
+  exam    Exam    @relation(fields: [examId], references: [id])
+  student Student @relation(fields: [studentId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@index([studentId])
+}
