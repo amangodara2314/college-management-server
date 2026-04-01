@@ -21,5 +21,8 @@ router.get(
   "/stats/session/:sessionId",
   studentController.getStudentStatsBySession,
 );
+router.put("/:id", studentController.updateStudent);
+router.get("/:id", studentController.getStudentById);
+router.delete("/:id", studentController.deleteStudent);
 
 module.exports = router;

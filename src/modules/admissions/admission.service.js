@@ -3,19 +3,26 @@ const studentRepository = require("../students/student.repository");
 const courseRepository = require("../courses/course.repository");
 const admissionRepository = require("../admissions/admission.repository");
 const sessionRepository = require("../sessions/session.repository");
+const semesterRepository = require("../semesters/semester.repository");
 const { generateEnrollmentNo } = require("../../utils/generateEnrollmentNo");
 const prisma = require("../../config/prisma");
 
 const createAdmission = async (data) => {
-  const [student, course, session] = await Promise.all([
+  const [student, course, session, semester] = await Promise.all([
     studentRepository.findStudentById(data.studentId),
     courseRepository.findCourseById(data.courseId),
     sessionRepository.findSessionById(data.sessionId),
+    semesterRepository.findSemesterById(data.semesterId),
   ]);
 
   if (!student) throw new Error("Student not found");
   if (!course) throw new Error("Course not found");
   if (!session) throw new Error("Session not found");
+  if (!semester) throw new Error("Semester not found");
+
+  if (semester.sessionId !== session.id) {
+    throw new Error("Semester does not belong to selected session");
+  }
 
   const existingAdmission =
     await admissionRepository.findByStudentCourseSession(
@@ -56,6 +63,7 @@ const createAdmission = async (data) => {
       data: {
         admissionId: admission.id,
         sessionId: session.id,
+        semesterId: semester.id,
         year: data.year,
       },
     });

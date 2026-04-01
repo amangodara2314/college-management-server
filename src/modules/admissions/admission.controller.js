@@ -7,8 +7,15 @@ const admissionService = require("./admission.service");
 
 const createAdmission = async (req, res) => {
   try {
-    const { studentId, courseId, sessionId, admissionDate, year, subjectIds } =
-      req.body;
+    const {
+      studentId,
+      courseId,
+      sessionId,
+      semesterId,
+      admissionDate,
+      year,
+      subjectIds,
+    } = req.body;
 
     const normalizedSubjectIds = Array.isArray(subjectIds)
       ? subjectIds
@@ -16,10 +23,10 @@ const createAdmission = async (req, res) => {
         ? [subjectIds]
         : [];
 
-    if (!studentId || !courseId || !sessionId) {
+    if (!studentId || !courseId || !sessionId || !semesterId) {
       return errorResponse(
         res,
-        "Student, course and session are required",
+        "Student, course, session and semester are required",
         400,
       );
     }
@@ -35,6 +42,7 @@ const createAdmission = async (req, res) => {
     const admission = await admissionService.createAdmission({
       ...req.body,
       subjectIds: normalizedSubjectIds,
+      semesterId,
       admissionDate: admissionDate ? convertToUtc(admissionDate) : undefined,
       year: parseInt(year, 10),
     });

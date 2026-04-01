@@ -81,6 +81,7 @@ model Session {
 
   admissions     Admission[]
   enrollments    Enrollment[]
+  semesters      Semester[]
   feeStructures  FeeStructure[]
   exams          Exam[]
 }
@@ -199,6 +200,25 @@ model StudentSubject {
 }
 
 //////////////////////////////////////////////////////
+// SEMESTERS
+//////////////////////////////////////////////////////
+
+model Semester {
+  id        String   @id @default(uuid())
+  sessionId String
+  number    Int
+  startDate DateTime
+  endDate   DateTime
+
+  session Session @relation(fields: [sessionId], references: [id])
+
+  enrollments Enrollment[]
+  exams       Exam[]
+
+  @@unique([sessionId, number])
+}
+
+//////////////////////////////////////////////////////
 // ENROLLMENTS
 //////////////////////////////////////////////////////
 
@@ -206,15 +226,17 @@ model Enrollment {
   id          String           @id @default(uuid())
   admissionId String
   sessionId   String
+  semesterId  String
   year        Int
   status      EnrollmentStatus @default(ACTIVE)
 
   admission Admission @relation(fields: [admissionId], references: [id], onDelete: Cascade)
   session   Session   @relation(fields: [sessionId], references: [id])
+  semester  Semester  @relation(fields: [semesterId], references: [id])
 
   feePayments FeePayment[]
 
-  @@unique([admissionId, sessionId])
+  @@unique([admissionId, semesterId])
 }
 
 //////////////////////////////////////////////////////
@@ -307,13 +329,14 @@ model StudentDocument {
 //////////////////////////////////////////////////////
 
 model Exam {
-  id        String   @id @default(uuid())
-  sessionId String
-  semester  Int
-  name      String
+  id         String   @id @default(uuid())
+  sessionId  String
+  semesterId String
+  name       String
 
-  session Session @relation(fields: [sessionId], references: [id])
-  marks   Mark[]
+  session  Session  @relation(fields: [sessionId], references: [id])
+  semester Semester @relation(fields: [semesterId], references: [id])
+  marks    Mark[]
 }
 
 //////////////////////////////////////////////////////

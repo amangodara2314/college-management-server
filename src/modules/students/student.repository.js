@@ -2,8 +2,11 @@
 
 const prisma = require("../../config/prisma");
 
-const findStudentById = async (id) => {
-  return await prisma.student.findUnique({ where: { id } });
+const findStudentById = async (id, query = {}) => {
+  return await prisma.student.findUnique({
+    where: { id },
+    ...query,
+  });
 };
 
 const createStudent = async (db, studentData) => {
@@ -43,6 +46,12 @@ const getStudentStatsBySession = async (sessionId) => {
   });
 };
 
+const deleteStudent = async (id) => {
+  return await prisma.student.delete({
+    where: { id },
+  });
+};
+
 module.exports = {
   findStudentById,
   createStudent,
@@ -50,4 +59,5 @@ module.exports = {
   countStudents,
   getStudentStatsBySession,
   updateStudent,
+  deleteStudent,
 };
