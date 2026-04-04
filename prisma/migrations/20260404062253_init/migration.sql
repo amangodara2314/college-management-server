@@ -4,9 +4,18 @@ CREATE TYPE "EnrollmentStatus" AS ENUM ('ACTIVE', 'PROMOTED', 'REPEAT', 'FAILED'
 -- CreateEnum
 CREATE TYPE "PaymentMethod" AS ENUM ('CASH', 'ONLINE', 'UPI', 'CARD', 'BANK_TRANSFER');
 
+-- CreateEnum
+CREATE TYPE "Gender" AS ENUM ('MALE', 'FEMALE', 'OTHER');
+
+-- CreateEnum
+CREATE TYPE "Category" AS ENUM ('GENERAL', 'OBC', 'SC', 'ST');
+
+-- CreateEnum
+CREATE TYPE "Religion" AS ENUM ('HINDU', 'SIKH', 'MUSLIM', 'CHRISTIAN', 'BUDDHIST', 'JAIN');
+
 -- CreateTable
 CREATE TABLE "Admin" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
@@ -17,7 +26,7 @@ CREATE TABLE "Admin" (
 
 -- CreateTable
 CREATE TABLE "Session" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "startDate" TIMESTAMP(3) NOT NULL,
     "endDate" TIMESTAMP(3) NOT NULL,
@@ -28,10 +37,11 @@ CREATE TABLE "Session" (
 
 -- CreateTable
 CREATE TABLE "Course" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "durationYears" INTEGER NOT NULL,
     "totalSemesters" INTEGER NOT NULL,
+    "code" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Course_pkey" PRIMARY KEY ("id")
@@ -39,7 +49,7 @@ CREATE TABLE "Course" (
 
 -- CreateTable
 CREATE TABLE "Subject" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "code" TEXT,
 
@@ -47,18 +57,8 @@ CREATE TABLE "Subject" (
 );
 
 -- CreateTable
-CREATE TABLE "CourseSubject" (
-    "id" SERIAL NOT NULL,
-    "courseId" INTEGER NOT NULL,
-    "subjectId" INTEGER NOT NULL,
-    "semester" INTEGER NOT NULL,
-
-    CONSTRAINT "CourseSubject_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "Student" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
     "lastName" TEXT,
     "fatherName" TEXT,
@@ -66,17 +66,36 @@ CREATE TABLE "Student" (
     "mobile" TEXT,
     "email" TEXT,
     "address" TEXT,
+    "aadhar" TEXT,
+    "janAadhar" TEXT,
+    "ssoId" TEXT,
+    "ssoIdPassword" TEXT,
+    "otr" TEXT,
+    "gender" "Gender" NOT NULL,
+    "category" "Category" NOT NULL,
+    "subCategory" TEXT,
+    "religion" "Religion" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Student_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
+CREATE TABLE "Note" (
+    "id" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "studentId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Note_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Admission" (
-    "id" SERIAL NOT NULL,
-    "studentId" INTEGER NOT NULL,
-    "courseId" INTEGER NOT NULL,
-    "admissionSessionId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "studentId" TEXT NOT NULL,
+    "courseId" TEXT NOT NULL,
+    "admissionSessionId" TEXT NOT NULL,
     "enrollmentNo" TEXT NOT NULL,
     "admissionDate" TIMESTAMP(3),
     "status" TEXT NOT NULL DEFAULT 'ACTIVE',
@@ -87,18 +106,30 @@ CREATE TABLE "Admission" (
 
 -- CreateTable
 CREATE TABLE "StudentSubject" (
-    "id" SERIAL NOT NULL,
-    "admissionId" INTEGER NOT NULL,
-    "subjectId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "admissionId" TEXT NOT NULL,
+    "subjectId" TEXT NOT NULL,
 
     CONSTRAINT "StudentSubject_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
+CREATE TABLE "Semester" (
+    "id" TEXT NOT NULL,
+    "sessionId" TEXT NOT NULL,
+    "number" INTEGER NOT NULL,
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "endDate" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Semester_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Enrollment" (
-    "id" SERIAL NOT NULL,
-    "admissionId" INTEGER NOT NULL,
-    "sessionId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "admissionId" TEXT NOT NULL,
+    "sessionId" TEXT NOT NULL,
+    "semesterId" TEXT NOT NULL,
     "year" INTEGER NOT NULL,
     "status" "EnrollmentStatus" NOT NULL DEFAULT 'ACTIVE',
 
@@ -107,7 +138,7 @@ CREATE TABLE "Enrollment" (
 
 -- CreateTable
 CREATE TABLE "FeeComponent" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
 
@@ -116,11 +147,11 @@ CREATE TABLE "FeeComponent" (
 
 -- CreateTable
 CREATE TABLE "FeeStructure" (
-    "id" SERIAL NOT NULL,
-    "courseId" INTEGER NOT NULL,
-    "sessionId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "courseId" TEXT NOT NULL,
+    "sessionId" TEXT NOT NULL,
     "year" INTEGER NOT NULL,
-    "feeComponentId" INTEGER NOT NULL,
+    "feeComponentId" TEXT NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
 
     CONSTRAINT "FeeStructure_pkey" PRIMARY KEY ("id")
@@ -128,9 +159,9 @@ CREATE TABLE "FeeStructure" (
 
 -- CreateTable
 CREATE TABLE "FeePayment" (
-    "id" SERIAL NOT NULL,
-    "enrollmentId" INTEGER NOT NULL,
-    "feeComponentId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "enrollmentId" TEXT NOT NULL,
+    "feeComponentId" TEXT NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
     "paymentDate" TIMESTAMP(3) NOT NULL,
     "paymentMethod" "PaymentMethod" NOT NULL,
@@ -142,7 +173,7 @@ CREATE TABLE "FeePayment" (
 
 -- CreateTable
 CREATE TABLE "DocumentType" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
 
     CONSTRAINT "DocumentType_pkey" PRIMARY KEY ("id")
@@ -150,11 +181,15 @@ CREATE TABLE "DocumentType" (
 
 -- CreateTable
 CREATE TABLE "StudentDocument" (
-    "id" SERIAL NOT NULL,
-    "studentId" INTEGER NOT NULL,
-    "documentTypeId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "studentId" TEXT NOT NULL,
+    "documentTypeId" TEXT NOT NULL,
     "fileUrl" TEXT NOT NULL,
     "publicId" TEXT NOT NULL,
+    "resourceType" TEXT NOT NULL,
+    "format" TEXT NOT NULL,
+    "fileName" TEXT NOT NULL,
+    "fileSize" INTEGER NOT NULL,
     "uploadedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "StudentDocument_pkey" PRIMARY KEY ("id")
@@ -162,9 +197,9 @@ CREATE TABLE "StudentDocument" (
 
 -- CreateTable
 CREATE TABLE "Exam" (
-    "id" SERIAL NOT NULL,
-    "sessionId" INTEGER NOT NULL,
-    "semester" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "sessionId" TEXT NOT NULL,
+    "semesterId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
 
     CONSTRAINT "Exam_pkey" PRIMARY KEY ("id")
@@ -172,10 +207,10 @@ CREATE TABLE "Exam" (
 
 -- CreateTable
 CREATE TABLE "Mark" (
-    "id" SERIAL NOT NULL,
-    "examId" INTEGER NOT NULL,
-    "studentId" INTEGER NOT NULL,
-    "subjectId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "examId" TEXT NOT NULL,
+    "studentId" TEXT NOT NULL,
+    "subjectId" TEXT NOT NULL,
     "attempt" INTEGER NOT NULL,
     "marks" DOUBLE PRECISION NOT NULL,
     "result" TEXT,
@@ -190,13 +225,10 @@ CREATE UNIQUE INDEX "Admin_email_key" ON "Admin"("email");
 CREATE UNIQUE INDEX "Session_name_key" ON "Session"("name");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Course_code_key" ON "Course"("code");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Subject_code_key" ON "Subject"("code");
-
--- CreateIndex
-CREATE INDEX "CourseSubject_courseId_idx" ON "CourseSubject"("courseId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "CourseSubject_courseId_subjectId_key" ON "CourseSubject"("courseId", "subjectId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Admission_enrollmentNo_key" ON "Admission"("enrollmentNo");
@@ -208,7 +240,10 @@ CREATE INDEX "Admission_studentId_idx" ON "Admission"("studentId");
 CREATE UNIQUE INDEX "StudentSubject_admissionId_subjectId_key" ON "StudentSubject"("admissionId", "subjectId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Enrollment_admissionId_sessionId_key" ON "Enrollment"("admissionId", "sessionId");
+CREATE UNIQUE INDEX "Semester_sessionId_number_key" ON "Semester"("sessionId", "number");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Enrollment_admissionId_semesterId_key" ON "Enrollment"("admissionId", "semesterId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "FeeComponent_name_key" ON "FeeComponent"("name");
@@ -220,13 +255,13 @@ CREATE INDEX "FeeStructure_courseId_idx" ON "FeeStructure"("courseId");
 CREATE UNIQUE INDEX "DocumentType_name_key" ON "DocumentType"("name");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "StudentDocument_studentId_documentTypeId_key" ON "StudentDocument"("studentId", "documentTypeId");
+
+-- CreateIndex
 CREATE INDEX "Mark_studentId_idx" ON "Mark"("studentId");
 
 -- AddForeignKey
-ALTER TABLE "CourseSubject" ADD CONSTRAINT "CourseSubject_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "CourseSubject" ADD CONSTRAINT "CourseSubject_subjectId_fkey" FOREIGN KEY ("subjectId") REFERENCES "Subject"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Note" ADD CONSTRAINT "Note_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Admission" ADD CONSTRAINT "Admission_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -244,10 +279,16 @@ ALTER TABLE "StudentSubject" ADD CONSTRAINT "StudentSubject_admissionId_fkey" FO
 ALTER TABLE "StudentSubject" ADD CONSTRAINT "StudentSubject_subjectId_fkey" FOREIGN KEY ("subjectId") REFERENCES "Subject"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Semester" ADD CONSTRAINT "Semester_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Enrollment" ADD CONSTRAINT "Enrollment_admissionId_fkey" FOREIGN KEY ("admissionId") REFERENCES "Admission"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Enrollment" ADD CONSTRAINT "Enrollment_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Enrollment" ADD CONSTRAINT "Enrollment_semesterId_fkey" FOREIGN KEY ("semesterId") REFERENCES "Semester"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "FeeStructure" ADD CONSTRAINT "FeeStructure_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -272,6 +313,9 @@ ALTER TABLE "StudentDocument" ADD CONSTRAINT "StudentDocument_documentTypeId_fke
 
 -- AddForeignKey
 ALTER TABLE "Exam" ADD CONSTRAINT "Exam_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Exam" ADD CONSTRAINT "Exam_semesterId_fkey" FOREIGN KEY ("semesterId") REFERENCES "Semester"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Mark" ADD CONSTRAINT "Mark_examId_fkey" FOREIGN KEY ("examId") REFERENCES "Exam"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
