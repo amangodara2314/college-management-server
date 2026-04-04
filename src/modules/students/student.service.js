@@ -111,6 +111,10 @@ const createStudent = async (data) => {
       }));
 
       await subjectRepository.createStudentSubjectTransaction(tx, subjects);
+
+      await studentRepository.createStudentNote(tx, student.id, {
+        description: data.note,
+      });
     });
   } catch (error) {
     // rollback cloudinary uploads

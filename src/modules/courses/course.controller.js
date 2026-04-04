@@ -64,4 +64,18 @@ const findCourses = async (req, res) => {
   }
 };
 
-module.exports = { createCourse, findCourseById, findCourses };
+const updateCourse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return errorResponse(res, "Id is required", 400);
+    }
+
+    const course = await courseService.updateCourse(id, req.body);
+    return successResponse(res, course, "Course updated successfully");
+  } catch (error) {
+    return errorResponse(res, error.message);
+  }
+};
+
+module.exports = { createCourse, findCourseById, findCourses, updateCourse };

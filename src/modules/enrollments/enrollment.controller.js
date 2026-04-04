@@ -78,7 +78,7 @@ const promoteStudent = async (req, res) => {
 
     return successResponse(res, result, message, 200);
   } catch (error) {
-    return errorResponse(res, error.message);
+    return errorResponse(res, error.message, error.statusCode || 500);
   }
 };
 
@@ -110,6 +110,101 @@ const promoteStudentsBulk = async (req, res) => {
     }
 
     return errorResponse(res, error.message);
+  }
+};
+
+const promoteStudentToCourse = async (req, res) => {
+  try {
+    const {
+      currentAdmissionId,
+      targetCourseId,
+      sessionId,
+      startingSemesterId,
+      subjectIds,
+      admissionDate,
+    } = req.body;
+
+    if (
+      !currentAdmissionId ||
+      !targetCourseId ||
+      !sessionId ||
+      !startingSemesterId
+    ) {
+      return errorResponse(
+        res,
+        "currentAdmissionId, targetCourseId, sessionId and startingSemesterId are required",
+        400,
+      );
+    }
+
+    if (!Array.isArray(subjectIds) || subjectIds.length === 0) {
+      return errorResponse(res, "subjectIds array is required", 400);
+    }
+
+    const result = await enrollmentService.promoteStudentToCourse({
+      currentAdmissionId,
+      targetCourseId,
+      sessionId,
+      startingSemesterId,
+      subjectIds,
+      admissionDate,
+    });
+
+    return successResponse(
+      res,
+      result,
+      "Student promoted to course successfully",
+      201,
+    );
+  } catch (error) {
+    return errorResponse(res, error.message, error.statusCode || 500);
+  }
+};
+
+const promoteStudentsToCourseBulk = async (req, res) => {
+  try {
+    const {
+      targetCourseId,
+      sessionId,
+      startingSemesterId,
+      subjectIds,
+      items,
+      concurrency,
+    } = req.body;
+
+    if (!targetCourseId || !sessionId || !startingSemesterId) {
+      return errorResponse(
+        res,
+        "targetCourseId, sessionId and startingSemesterId are required",
+        400,
+      );
+    }
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return errorResponse(res, "Items array is required", 400);
+    }
+
+    if (typeof subjectIds !== "undefined" && !Array.isArray(subjectIds)) {
+      return errorResponse(res, "subjectIds must be an array", 400);
+    }
+
+    const result = await enrollmentService.promoteStudentsToCourseBulk({
+      targetCourseId,
+      sessionId,
+      startingSemesterId,
+      subjectIds,
+      items,
+      concurrency,
+    });
+
+    return successResponse(
+      res,
+      result,
+      "Bulk course promotion processed successfully",
+      200,
+    );
+  } catch (error) {
+    return errorResponse(res, error.message, error.statusCode || 500);
   }
 };
 
@@ -243,9 +338,16 @@ const updateEnrollment = async (req, res) => {
     const { id } = req.params;
     const { year, status, sessionId, semesterId } = req.body;
 
+    if (typeof status !== "undefined") {
+      return errorResponse(
+        res,
+        "Use PATCH /api/enrollment/:id/status for enrollment status updates",
+        400,
+      );
+    }
+
     if (
       typeof year === "undefined" &&
-      typeof status === "undefined" &&
       typeof sessionId === "undefined" &&
       typeof semesterId === "undefined"
     ) {
@@ -262,10 +364,6 @@ const updateEnrollment = async (req, res) => {
       if (Number.isNaN(parsedYear) || parsedYear < 1) {
         return errorResponse(res, "Valid year is required", 400);
       }
-    }
-
-    if (typeof status !== "undefined" && !enrollmentStatuses.includes(status)) {
-      return errorResponse(res, "Invalid enrollment status", 400);
     }
 
     const enrollment = await enrollmentService.updateEnrollment(id, {
@@ -285,17 +383,46 @@ const updateEnrollment = async (req, res) => {
   }
 };
 
+const updateEnrollmentStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return errorResponse(res, "Status is required", 400);
+    }
+
+    if (!enrollmentStatuses.includes(status)) {
+      return errorResponse(res, "Invalid enrollment status", 400);
+    }
+
+    const enrollment = await enrollmentService.updateEnrollmentStatus(
+      id,
+      status,
+    );
+
+    return successResponse(
+      res,
+      enrollment,
+      "Enrollment status updated successfully",
+      200,
+    );
+  } catch (error) {
+    return errorResponse(res, error.message, error.statusCode || 500);
+  }
+};
+
 const deleteEnrollment = async (req, res) => {
   try {
     const { id } = req.params;
     await enrollmentService.deleteEnrollment(id);
     return successResponse(res, null, "Enrollment deleted successfully");
   } catch (error) {
-    if (error.code === "P2025") {
+    if (error.code === "P2025" || error.statusCode === 404) {
       return errorResponse(res, "Enrollment not found", 404);
     }
 
-    return errorResponse(res, error.message);
+    return errorResponse(res, error.message, error.statusCode || 500);
   }
 };
 
@@ -304,7 +431,10 @@ module.exports = {
   getEnrollments,
   getEnrollmentById,
   updateEnrollment,
+  updateEnrollmentStatus,
   deleteEnrollment,
   promoteStudent,
   promoteStudentsBulk,
+  promoteStudentToCourse,
+  promoteStudentsToCourseBulk,
 };

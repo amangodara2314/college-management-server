@@ -46,6 +46,16 @@ const getStudentStatsBySession = async (sessionId) => {
   });
 };
 
+const createStudentNote = async (tx, studentId, noteData) => {
+  const db = tx || prisma;
+  return await db.note.create({
+    data: {
+      studentId,
+      ...noteData,
+    },
+  });
+};
+
 const deleteStudent = async (id) => {
   return await prisma.student.delete({
     where: { id },
@@ -60,4 +70,5 @@ module.exports = {
   getStudentStatsBySession,
   updateStudent,
   deleteStudent,
+  createStudentNote,
 };

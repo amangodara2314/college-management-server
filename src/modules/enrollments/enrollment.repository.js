@@ -94,6 +94,65 @@ const findActiveEnrollmentByAdmission = async (admissionId, db = prisma) => {
   });
 };
 
+const findEnrollmentForDeleteById = async (id, db = prisma) => {
+  return await db.enrollment.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      status: true,
+      admissionId: true,
+      semester: {
+        select: {
+          number: true,
+        },
+      },
+    },
+  });
+};
+
+const findLatestPromotedBeforeSemester = async (
+  admissionId,
+  semesterNumber,
+  db = prisma,
+) => {
+  return await db.enrollment.findFirst({
+    where: {
+      admissionId,
+      status: "PROMOTED",
+      semester: {
+        number: {
+          lt: semesterNumber,
+        },
+      },
+    },
+    orderBy: {
+      semester: {
+        number: "desc",
+      },
+    },
+  });
+};
+
+const findHigherEnrollmentAfterSemester = async (
+  admissionId,
+  semesterNumber,
+  db = prisma,
+) => {
+  return await db.enrollment.findFirst({
+    where: {
+      admissionId,
+      semester: {
+        number: {
+          gt: semesterNumber,
+        },
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+};
+
 const findEnrollments = async (params) => {
   return await prisma.enrollment.findMany({
     ...params,
@@ -154,15 +213,25 @@ const deleteEnrollment = async (id) => {
   });
 };
 
+const deleteEnrollmentTransaction = async (tx, id) => {
+  return await tx.enrollment.delete({
+    where: { id },
+  });
+};
+
 module.exports = {
   createEnrollment,
   createEnrollmentTransaction,
   findEnrollmentById,
   findEnrollmentByAdmissionAndSemester,
   findActiveEnrollmentByAdmission,
+  findEnrollmentForDeleteById,
+  findLatestPromotedBeforeSemester,
+  findHigherEnrollmentAfterSemester,
   findEnrollments,
   countEnrollments,
   updateEnrollment,
   deleteEnrollment,
+  deleteEnrollmentTransaction,
   updateEnrollmentTransaction,
 };
