@@ -3,7 +3,24 @@ const documentService = require("./document.service");
 
 const createDocument = async (req, res) => {
   try {
-    const result = await documentService.createDocument(req.body);
+    const file = req.file;
+    const studentId = req.body.studentId;
+    const documentTypeId = req.body.documentTypeId;
+    if (!file) {
+      return errorResponse(res, "Document file is required", 400);
+    }
+    if (!studentId) {
+      return errorResponse(res, "Student ID is required", 400);
+    }
+    if (!documentTypeId) {
+      return errorResponse(res, "Document type ID is required", 400);
+    }
+
+    const result = await documentService.createDocument({
+      studentId,
+      file,
+      documentTypeId,
+    });
     return successResponse(res, result, "Document created successfully", 201);
   } catch (error) {
     return errorResponse(res, error.message);
