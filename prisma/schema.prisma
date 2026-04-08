@@ -125,10 +125,12 @@ model Student {
   firstName  String
   lastName   String?
   fatherName String?
+  motherName String?
   dob        DateTime?
   mobile     String?
   email      String?
   address    String?
+  srNumber   String?
   aadhar     String?
   janAadhar  String?
   ssoId      String?

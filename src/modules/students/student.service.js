@@ -22,10 +22,12 @@ const createStudent = async (data) => {
     firstName: data?.firstName,
     lastName: data?.lastName,
     fatherName: data?.fatherName,
+    motherName: data?.motherName,
     dob: convertToUtc(data?.dob),
     mobile: data?.mobile,
     email: data?.email,
     address: data?.address,
+    srNumber: data?.srNumber,
     aadhar: data?.aadhar,
     janAadhar: data?.janAadhar,
     ssoId: data?.ssoId,
@@ -288,6 +290,10 @@ const updateStudent = async (id, data) => {
     payload.fatherName = data.fatherName;
   }
 
+  if (typeof data.motherName !== "undefined") {
+    payload.motherName = data.motherName;
+  }
+
   if (typeof data.dob !== "undefined") {
     payload.dob = data.dob ? convertToUtc(data.dob) : null;
   }
@@ -302,6 +308,10 @@ const updateStudent = async (id, data) => {
 
   if (typeof data.address !== "undefined") {
     payload.address = data.address;
+  }
+
+  if (typeof data.srNumber !== "undefined") {
+    payload.srNumber = data.srNumber;
   }
 
   if (typeof data.aadhar !== "undefined") {
