@@ -1,0 +1,5 @@
+-- CreateEnum
+CREATE TYPE "Mode" AS ENUM ('COLLEGIATE', 'NON_COLLEGIATE');
+
+-- AlterTable
+ALTER TABLE "Admission" ADD COLUMN     "mode" "Mode" NOT NULL DEFAULT 'COLLEGIATE';

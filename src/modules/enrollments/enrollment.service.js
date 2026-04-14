@@ -259,6 +259,7 @@ const promoteStudentToCourseInTransaction = async (
       enrollmentNo,
       admissionDate: utcAdmissionDate,
       status: "ACTIVE",
+      mode: sourceAdmission.mode || "COLLEGIATE",
     },
   });
 

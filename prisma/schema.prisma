@@ -57,6 +57,11 @@ enum Religion {
   JAIN
 }
 
+enum Mode {
+  COLLEGIATE 
+  NON_COLLEGIATE
+}
+
 //////////////////////////////////////////////////////
 // ADMIN
 //////////////////////////////////////////////////////
@@ -176,6 +181,7 @@ model Admission {
   admissionDate      DateTime?
   status             String   @default("ACTIVE")
   createdAt          DateTime @default(now())
+  mode               Mode @default( COLLEGIATE)
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
   course  Course  @relation(fields: [courseId], references: [id])

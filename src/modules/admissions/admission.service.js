@@ -6,8 +6,12 @@ const sessionRepository = require("../sessions/session.repository");
 const semesterRepository = require("../semesters/semester.repository");
 const { generateEnrollmentNo } = require("../../utils/generateEnrollmentNo");
 const prisma = require("../../config/prisma");
+const { Mode } = require("@prisma/client");
 
 const createAdmission = async (data) => {
+  if (!data.mode || Mode[data.mode] === undefined) {
+    data.mode = Mode.COLLEGIATE; // Default to COLLEGIATE if mode is not provided or invalid
+  }
   const [student, course, session, semester] = await Promise.all([
     studentRepository.findStudentById(data.studentId),
     courseRepository.findCourseById(data.courseId),
@@ -56,6 +60,7 @@ const createAdmission = async (data) => {
         studentId: student.id,
         admissionDate: data.admissionDate || new Date().toISOString(),
         admissionSessionId: data.sessionId,
+        mode: data.mode,
       },
     });
 
@@ -102,6 +107,10 @@ const updateAdmission = async (id, data) => {
 
   if (typeof data.admissionDate !== "undefined") {
     payload.admissionDate = data.admissionDate;
+  }
+
+  if (data.mode || Mode[data.mode] === undefined) {
+    data.mode = Mode.COLLEGIATE; // Default to COLLEGIATE if mode is not provided or invalid
   }
 
   return admissionRepository.updateAdmission(id, payload);

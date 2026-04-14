@@ -55,7 +55,6 @@ const createStudent = async (data) => {
 
   let student;
   let admission;
-  let enrollment;
   let uploadedDocuments = [];
 
   const startYear = session.name.split("-")[0];
@@ -114,9 +113,11 @@ const createStudent = async (data) => {
 
       await subjectRepository.createStudentSubjectTransaction(tx, subjects);
 
-      await studentRepository.createStudentNote(tx, student.id, {
-        description: data.note,
-      });
+      if (data.note) {
+        await studentRepository.createStudentNote(tx, student.id, {
+          description: data.note,
+        });
+      }
     });
   } catch (error) {
     // rollback cloudinary uploads
