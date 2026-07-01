@@ -6,6 +6,7 @@ const findByEmail = async (email) => {
   });
 };
 
+
 const findById = async (id) => {
   return await prisma.admin.findUnique({
     where: { id },

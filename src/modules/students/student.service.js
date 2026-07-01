@@ -145,6 +145,8 @@ const findStudents = async ({
   courseId,
   sessionId,
   semesterId,
+  gender,
+  category,
 }) => {
   const skip = (page - 1) * limit;
 
@@ -153,6 +155,8 @@ const findStudents = async ({
     courseId,
     sessionId,
     semesterId,
+    gender,
+    category,
   });
 
   const query = {
@@ -164,14 +168,21 @@ const findStudents = async ({
     },
   };
 
-  const [students, totalStudents] = await Promise.all([
+  const [students, totalStudents, maleCount, femaleCount] = await Promise.all([
     studentRepository.findStudents(query),
     studentRepository.countStudents({ where }),
+    studentRepository.countStudents({ where: { ...where, gender: "MALE" } }),
+    studentRepository.countStudents({ where: { ...where, gender: "FEMALE" } }),
   ]);
 
   return {
     students,
     pagination: buildPagination(page, limit, totalStudents),
+    counts: {
+      total: totalStudents,
+      male: maleCount,
+      female: femaleCount,
+    },
   };
 };
 

@@ -1,9 +1,11 @@
 const authRepository = require("./auth.repository");
 const { hashPassword, comparePassword } = require("../../utils/password");
 const { generateToken } = require("../../utils/jwt");
+const prisma = require("../../config/prisma");
 
 const login = async (email, password) => {
   // Find admin by email
+
   const admin = await authRepository.findByEmail(email);
 
   if (!admin) {
@@ -12,7 +14,7 @@ const login = async (email, password) => {
 
   // Verify password
   const isValidPassword = await comparePassword(password, admin.password);
-
+  console.log("password invalid")
   if (!isValidPassword) {
     throw new Error("Invalid email or password");
   }

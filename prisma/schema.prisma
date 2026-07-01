@@ -125,7 +125,7 @@ model Subject {
 // STUDENTS
 //////////////////////////////////////////////////////
 
-model Student {
+model   Student {
   id         String   @id @default(uuid())
   firstName  String
   lastName   String?

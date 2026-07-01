@@ -1,4 +1,4 @@
-const buildStudentWhere = ({ courseId, sessionId, semesterId, search }) => {
+const buildStudentWhere = ({ courseId, sessionId, semesterId, search, gender, category }) => {
   const where = {};
 
   // 🔍 Search filter (top-level, Student fields)
@@ -17,6 +17,16 @@ const buildStudentWhere = ({ courseId, sessionId, semesterId, search }) => {
         },
       },
     ];
+  }
+
+  // 🚻 Gender filter (top-level Student field)
+  if (gender && gender.trim() !== "") {
+    where.gender = gender.trim().toUpperCase();
+  }
+
+  // 📂 Category filter (top-level Student field)
+  if (category && category.trim() !== "") {
+    where.category = category.trim().toUpperCase();
   }
 
   // 🎯 Build admission-level filter

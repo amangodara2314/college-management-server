@@ -114,7 +114,7 @@ const createStudent = async (req, res) => {
 
 const findStudents = async (req, res) => {
   try {
-    const { search, page, limit, courseId, sessionId, semesterId } = req.query;
+    const { search, page, limit, courseId, sessionId, semesterId, gender, category } = req.query;
 
     const result = await studentService.findStudents({
       search,
@@ -123,6 +123,8 @@ const findStudents = async (req, res) => {
       courseId,
       sessionId,
       semesterId,
+      gender,
+      category,
     });
 
     return successResponse(res, result);
