@@ -11,6 +11,7 @@ router.post("/", admissionController.createAdmission);
 router.get("/", admissionController.getAdmissions);
 router.get("/:id", admissionController.getAdmissionById);
 router.put("/:id", admissionController.updateAdmission);
+router.put("/:id/subjects", admissionController.updateStudentSubjects);
 router.delete("/:id", admissionController.deleteAdmission);
 
 module.exports = router;

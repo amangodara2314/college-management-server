@@ -58,6 +58,18 @@ const findAdmission = async (params) => {
           name: true,
         },
       },
+      studentSubjects: {
+        include: {
+          subject: true,
+        },
+      },
+      enrollments: {
+        orderBy: { year: "desc" },
+        take: 1,
+        include: {
+          semester: true,
+        },
+      },
     },
   });
 };

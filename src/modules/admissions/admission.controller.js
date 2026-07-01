@@ -202,10 +202,36 @@ const deleteAdmission = async (req, res) => {
   }
 };
 
+const updateStudentSubjects = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { subjectIds } = req.body;
+
+    const normalized = Array.isArray(subjectIds)
+      ? subjectIds
+      : subjectIds
+        ? [subjectIds]
+        : [];
+
+    if (normalized.length === 0) {
+      return errorResponse(res, "At least one subject is required", 400);
+    }
+
+    const admission = await admissionService.updateStudentSubjects(id, normalized);
+    return successResponse(res, admission, "Subjects updated successfully");
+  } catch (error) {
+    if (error.message === "Admission not found") {
+      return errorResponse(res, error.message, 404);
+    }
+    return errorResponse(res, error.message);
+  }
+};
+
 module.exports = {
   createAdmission,
   getAdmissions,
   getAdmissionById,
   updateAdmission,
+  updateStudentSubjects,
   deleteAdmission,
 };

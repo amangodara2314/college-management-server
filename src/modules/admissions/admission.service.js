@@ -120,10 +120,30 @@ const deleteAdmission = async (id) => {
   return admissionRepository.deleteAdmission(id);
 };
 
+const updateStudentSubjects = async (admissionId, subjectIds) => {
+  if (!Array.isArray(subjectIds) || subjectIds.length === 0) {
+    throw new Error("At least one subject is required");
+  }
+
+  const admission = await admissionRepository.findAdmissionById(admissionId);
+  if (!admission) throw new Error("Admission not found");
+
+  await prisma.$transaction(async (tx) => {
+    await tx.studentSubject.deleteMany({ where: { admissionId } });
+    await tx.studentSubject.createMany({
+      data: subjectIds.map((subjectId) => ({ admissionId, subjectId })),
+    });
+  });
+
+  // Return the updated admission with subjects
+  return admissionRepository.findAdmissionById(admissionId);
+};
+
 module.exports = {
   createAdmission,
   getAdmissions,
   getAdmissionById,
   updateAdmission,
+  updateStudentSubjects,
   deleteAdmission,
 };
